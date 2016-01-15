@@ -1,3 +1,8 @@
+html, body
+{
+    height: 100%;
+}
+
 body {
   padding-top: 51px;  
 }
@@ -7,18 +12,27 @@ body {
 .col-xs-12 {
   background-color: #fff;
 }
-#sidebar {
+.sidebar {
   height: 100%;
   padding-right: 0;
   padding-top: 20px;
 }
-#sidebar .nav {
+.sidebar .nav {
   width: 95%;
 }
-#sidebar li {
+.sidebar li {
   border:0 #f2f2f2 solid;
   border-bottom-width:1px;
 }
+
+.page-container {
+  height: 100%;
+}
+
+.container, .row, .map_container, .map {
+  height: 100%;
+}
+
 
 /* collapsed sidebar styles */
 @media screen and (max-width: 767px) {

@@ -17,7 +17,6 @@
         }
         #map {
           position: relative;
-          height: 500px;
           background-color: #CCC;
         }
       </style>
@@ -43,7 +42,7 @@
         <div id="row_container" class="row row-offcanvas row-offcanvas-left">
           
           <!-- sidebar -->
-          <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+          <div class="col-xs-6 col-sm-3 sidebar-offcanvas" class="sidebar" role="navigation">
             <!-- Search bar -->
             <div class="input-group">
                 <input class="form-control" placeholder="Search" name="q" 
@@ -52,20 +51,20 @@
                     <button class="btn btn-default" type="submit" data-bind="click: filterLocations"><i class="glyphicon glyphicon-search"></i></button>
                 </div>
             </div>
-            <ul class="nav" data-bind="foreach: locations">
-              <li><a href="#" data-bind="visible: visible, text: name"></a></li>           
+            <ul class="nav" data-bind="foreach: listLocations">
+              <li><a href="#" class="location" data-bind="visible: visible, text: $data.name, event: {click: $parent.filterLocationsClick}"></a></li>           
             </ul>
           </div>
     	
           <!-- main area -->
-          <div id="map_container" class="col-xs-12 col-sm-9">
-            <div id="map"></div>
+          <div id="map_container" class="map_container col-xs-12 col-sm-9">
+            <div id="map" class="map"></div>
           </div><!-- /.col-xs-12 main -->
         </div><!--/.row-->
       </div><!--/.container-->
     </div><!--/.page-container-->
 	<!-- script references -->
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
     <script 
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYkXp06F4dWig33UzK3jqNz3hBczwVklY">
     </script>

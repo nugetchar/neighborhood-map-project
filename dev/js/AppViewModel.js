@@ -44,6 +44,8 @@ define(['../libs/knockout/knockout.min'], function(ko) {
     			visible: ko.observable(true)},
 			];
 
+		self.listLocations = ko.observableArray(self.locations);
+
 		/**
 		 * @property map handler
 		 * @type {MapHandler}
@@ -54,12 +56,11 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 		mapHandler.initMap({lat:self.locations[0].lat, lng:self.locations[0].lng});
 	    
 	    //Then place markers
-	    
 	    var markers = [];
 		self.locations.forEach((val, i, t)=>{
 			markers.push(new google.maps.Marker({
 				position: {lat:val.lat, lng:val.lng},
-				map: map,
+				map: mapHandler.map,
 				title:''
 			}));
 		});
@@ -70,27 +71,33 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	        return mapHandler;
 	    });
 
-	    /**
-	     * @brief locationContainsString check if a location name contains a given string
-	     * @param  {string} location the location
-	     * @param  {string} string the strong
-	     * @return {boolean} TRUE or FALSE
-	     */
-	    var locationBeginsWithString = function(location, string){
-	    	var len = string.length;
-	    	var res = false;
-	    	if(location.name.length >= len) {
-				res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
-	    	} else {
-	    		res = false;
-	    	}
-	    	return res;
-	    };
-
-	    self.__defineGetter__('locationBeginsWithString', function(){
-	    	return locationBeginsWithString;
+	    self.__defineGetter__('markers', function(){
+	        return markers;
 	    });
+	    
+	    self.__defineGetter__('self', function(){
+	        return self;
+	    });
+	    
+
 	}
+
+    /**
+     * @brief locationBeginsWithString check if a location name contains a given string
+     * @param  {string} location the location
+     * @param  {string} string the strong
+     * @return {boolean} TRUE or FALSE
+     */
+	AppViewModel.prototype.locationBeginsWithString = function(location, string){
+    	var len = string.length;
+    	var res = false;
+    	if(location.name.length >= len) {
+			res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
+    	} else {
+    		res = false;
+    	}
+    	return res;
+	};
 
 	/**
 	 * @brief apply filter on the locations list
@@ -100,15 +107,34 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 		this.locations.forEach((location, index, array) => {
 			if(this.locationBeginsWithString(location, this.searchTerms())){
 				location.visible(true);
+				this.showMarker(index);
 			} else {
 				location.visible(false);
+				this.hideMarker(index);
 			}
 		});
-	}
+	};
+
+
+	/**
+	 * @brief apply filter on the locations list after a click
+	 * @return {void}
+	 */
+	AppViewModel.prototype.filterLocationsClick = function(data, event){
+		alert(this);
+	};
 
 	AppViewModel.prototype.focusOnLocation = function(location){
 		//TODO : 
-	}
+	};
+
+	AppViewModel.prototype.showMarker = function(index){
+		this.markers[index].setMap(this.mapHandler.map);
+	};
+
+	AppViewModel.prototype.hideMarker = function(index){
+		this.markers[index].setMap(null);
+	};
 
 
 	/**
@@ -134,7 +160,7 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	 */
 	MapHandler.prototype.initMap = function(center_){
 	  // Create a map object and specify the DOM element for display.
-	  self.map = new google.maps.Map(document.getElementById('map'), {
+	  this.map = new google.maps.Map(document.getElementById('map'), {
 	    center: center_,
 	    scrollwheel: true,
 	    zoom: 2,
