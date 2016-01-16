@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>app.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>app.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+
+
+define([<span class="hljs-string">'../libs/knockout/knockout.min'</span>,
+    <span class="hljs-string">'./AppViewModel'</span>,
+    <span class="hljs-string">'../libs/bootstrap/js/bootstrap.min'</span>,
+    <span class="hljs-string">'./interactions'</span>,
+    <span class="hljs-string">'domReady!'</span>], 
+    <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ko, avm, bootstrap, interactions</span>) </span>{
+    <span class="hljs-keyword">var</span> appViewModel = <span class="hljs-keyword">new</span> avm();
+    ko.applyBindings(appViewModel);
+
+
+  google.maps.event.addDomListener(<span class="hljs-built_in">window</span>, <span class="hljs-string">'resize'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">var</span> map = appViewModel.mapHandler.map;
+    <span class="hljs-keyword">var</span> center = map.getCenter();
+    google.maps.event.trigger(map, <span class="hljs-string">'resize'</span>);
+    map.setCenter(center); 
+  });
+});</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -10,7 +10,7 @@ This is a map of all the places I want to visit while I'm still alive.
 
 1. Download the repository
 2. The production is in the "dist" directory. Dev sources are in the "dev" directory
-3. From a terminal, go to the project directory and run "gulp build" to generate a new dist folder.
+3. From a terminal, go to the project directory and run "gulp" to generate a new dist folder.
 
 ## Sites/Tools Used
 

@@ -3,15 +3,16 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     gulpif = require('gulp-if'),
     watch = require('gulp-watch'),
-    minifyCss = require('gulp-minify-css');
+    minifyCss = require('gulp-minify-css'),
+    docco = require("gulp-docco");
  
+
 gulp.task('html', function () {
     var assets = useref.assets();
  
-    return gulp.src(['./**/*.html', './**/*.png', './**/*.jpg'])
+    return gulp.src(['./**/*.html'])
         .pipe(assets)
         .pipe(gulpif('./**/*.js', uglify()))
-        .pipe(gulpif('./**/*.css', minifyCss()))
         .pipe(assets.restore())
         .pipe(useref())
         .pipe(gulp.dest('../dist'));
@@ -32,9 +33,26 @@ gulp.task('compress', function() {
     .pipe(gulp.dest('../dist'));
 });
 
-gulp.task('watch', function() {
-    gulp.watch(['html', 'minify-css', 'compress']);
+gulp.task('put', function() {
+   return gulp.src('./**/*.{jpg, jpeg, png}')
+   .pipe(gulp.dest('../dist'));
+});
+
+gulp.task('docco', function(){
+    return gulp.src("./js/**/*.js")
+            .pipe(docco())
+            .pipe(gulp.dest('./documentation'))
+            .pipe(gulp.dest('../dist/documentation'));
 });
 
 
-gulp.task('default', ['html', 'minify-css', 'compress', 'watch']);
+gulp.task('watch', function() {
+    gulp.watch(['html', 'minify-css', 'compress', 'docco', 'put']);
+});
+
+
+
+
+
+
+gulp.task('default', ['html', 'minify-css', 'compress', 'docco', 'put', 'watch']);

@@ -1,11 +1,20 @@
 
 // Main viewmodel class
-define(['../libs/knockout/knockout.min'], function(ko) {
+define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 	/**
 	 * @class AppViewModel Prototype
 	 */
 	function AppViewModel(){
-		var self = this;
+		let self = this;
+
+		/**
+		 * @property the domHandler handles all the DOM manipulations
+		 * which are not done with knockout (like jquery)
+		 * @type {DomHandler}
+		 */
+		self.domHandler = new dh();
+
+
 		/**
 		 * @property input for the updating of the locations list.
 		 * @type ko.observable
@@ -44,24 +53,34 @@ define(['../libs/knockout/knockout.min'], function(ko) {
     			visible: ko.observable(true)},
 			];
 
+		self.listLocations = ko.observableArray(self.locations);
+
 		/**
 		 * @property map handler
 		 * @type {MapHandler}
 		 */
-		var mapHandler = new MapHandler();
+		let mapHandler = new MapHandler();
 
 		//initialize map
 		mapHandler.initMap({lat:self.locations[0].lat, lng:self.locations[0].lng});
 	    
 	    //Then place markers
-	    
-	    var markers = [];
+	    let markers = [];
+
 		self.locations.forEach((val, i, t)=>{
-			markers.push(new google.maps.Marker({
+			let infowindow;
+  			let marker;
+			marker = new google.maps.Marker({
 				position: {lat:val.lat, lng:val.lng},
-				map: map,
-				title:''
-			}));
+				map: mapHandler.map,
+				title: val.name
+			});
+			infowindow = new google.maps.InfoWindow({content: val.description});
+			marker.addListener('click', function() {
+				infowindow.open(mapHandler.map, marker);
+				self.mapHandler.toggleBounce(marker);
+			});
+			markers.push(marker);
 		});
 
 
@@ -70,27 +89,54 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	        return mapHandler;
 	    });
 
-	    /**
-	     * @brief locationContainsString check if a location name contains a given string
-	     * @param  {string} location the location
-	     * @param  {string} string the strong
-	     * @return {boolean} TRUE or FALSE
-	     */
-	    var locationBeginsWithString = function(location, string){
-	    	var len = string.length;
-	    	var res = false;
-	    	if(location.name.length >= len) {
-				res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
-	    	} else {
-	    		res = false;
-	    	}
-	    	return res;
-	    };
-
-	    self.__defineGetter__('locationBeginsWithString', function(){
-	    	return locationBeginsWithString;
+	    self.__defineGetter__('markers', function(){
+	        return markers;
 	    });
+	    
+	    self.__defineGetter__('self', function(){
+	        return self;
+	    });
+	    
+
+		/**
+		 * @brief apply filter on the locations list after a click
+		 * @return {void}
+		 */
+		self.filterLocationsClick = function(data, event){
+			self.searchTerms(data.name);
+			
+			self.filterLocations(data, event);
+			focusOnInput();
+		};
+
+
+		/**
+		 * @brief Ask the DOM Handler to put the focus on the input text
+		 * This function is private
+		 */
+		let focusOnInput = function(){
+			self.domHandler.focusOnInput();
+		}
+
 	}
+
+
+    /**
+     * @brief locationBeginsWithString check if a location name contains a given string
+     * @param  {string} location the location
+     * @param  {string} string the strong
+     * @return {boolean} TRUE or FALSE
+     */
+	AppViewModel.prototype.locationBeginsWithString = function(location, string){
+    	let len = string.length;
+    	let res = false;
+    	if(location.name.length >= len) {
+			res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
+    	} else {
+    		res = false;
+    	}
+    	return res;
+	};
 
 	/**
 	 * @brief apply filter on the locations list
@@ -100,24 +146,30 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 		this.locations.forEach((location, index, array) => {
 			if(this.locationBeginsWithString(location, this.searchTerms())){
 				location.visible(true);
+				this.showMarker(index);
 			} else {
 				location.visible(false);
+				this.hideMarker(index);
 			}
 		});
-	}
+	};
 
-	AppViewModel.prototype.focusOnLocation = function(location){
-		//TODO : 
-	}
 
+	AppViewModel.prototype.showMarker = function(index){
+		this.markers[index].setMap(this.mapHandler.map);
+	};
+
+	AppViewModel.prototype.hideMarker = function(index){
+		this.markers[index].setMap(null);
+	};
 
 	/**
 	 * @class MapHandler
 	 */
 	function MapHandler(){
-		var self = this;
+		let self = this;
 
-		var map;
+		let map;
 
 	    this.__defineGetter__('map', function(){
 	        return map;
@@ -134,7 +186,7 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	 */
 	MapHandler.prototype.initMap = function(center_){
 	  // Create a map object and specify the DOM element for display.
-	  self.map = new google.maps.Map(document.getElementById('map'), {
+	  this.map = new google.maps.Map(document.getElementById('map'), {
 	    center: center_,
 	    scrollwheel: true,
 	    zoom: 2,
@@ -143,6 +195,18 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	    zoomControl: true
 	  });
 	};
+
+	/**
+	 * @brief toggleBounce to animate a marker
+	 * @param  {[Marker]} marker [a marker on the map]
+	 */
+	MapHandler.prototype.toggleBounce = function(marker){
+		if (marker.getAnimation() !== null) {
+			marker.setAnimation(null);
+		} else {
+			marker.setAnimation(google.maps.Animation.BOUNCE);
+		}
+	}
 
     return AppViewModel;
 });
