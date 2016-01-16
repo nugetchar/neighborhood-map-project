@@ -3,11 +3,11 @@
 
 
 define(['../libs/knockout/knockout.min',
-    './AppViewModel',
-    '../libs/bootstrap/js/bootstrap.min',
-    './interactions',
-    'domReady!'], 
-    function(ko, avm, bootstrap, interactions) {
+        './AppViewModel',
+        '../libs/bootstrap/js/bootstrap.min',
+        './interactions',
+        'domReady!'], 
+        function(ko, avm, bootstrap, interactions) {
     let appViewModel = new avm();
     ko.applyBindings(appViewModel);
 
