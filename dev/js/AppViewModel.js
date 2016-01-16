@@ -1,11 +1,20 @@
 
 // Main viewmodel class
-define(['../libs/knockout/knockout.min'], function(ko) {
+define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 	/**
 	 * @class AppViewModel Prototype
 	 */
 	function AppViewModel(){
 		var self = this;
+
+		/**
+		 * @property the domHandler handles all the DOM manipulations
+		 * which are not done with knockout (like jquery)
+		 * @type {DomHandler}
+		 */
+		self.domHandler = new dh();
+
+
 		/**
 		 * @property input for the updating of the locations list.
 		 * @type ko.observable
@@ -57,12 +66,21 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	    
 	    //Then place markers
 	    var markers = [];
+
 		self.locations.forEach((val, i, t)=>{
-			markers.push(new google.maps.Marker({
+			var infowindow;
+  			var marker;
+			marker = new google.maps.Marker({
 				position: {lat:val.lat, lng:val.lng},
 				map: mapHandler.map,
-				title:''
-			}));
+				title: val.name
+			});
+			infowindow = new google.maps.InfoWindow({content: val.description});
+			marker.addListener('click', function() {
+				infowindow.open(mapHandler.map, marker);
+				self.mapHandler.toggleBounce(marker);
+			});
+			markers.push(marker);
 		});
 
 
@@ -80,7 +98,28 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	    });
 	    
 
+		/**
+		 * @brief apply filter on the locations list after a click
+		 * @return {void}
+		 */
+		self.filterLocationsClick = function(data, event){
+			self.searchTerms(data.name);
+			
+			self.filterLocations(data, event);
+			focusOnInput();
+		};
+
+
+		/**
+		 * @brief Ask the DOM Handler to put the focus on the input text
+		 * This function is private
+		 */
+		var focusOnInput = function(){
+			self.domHandler.focusOnInput();
+		}
+
 	}
+
 
     /**
      * @brief locationBeginsWithString check if a location name contains a given string
@@ -116,18 +155,6 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	};
 
 
-	/**
-	 * @brief apply filter on the locations list after a click
-	 * @return {void}
-	 */
-	AppViewModel.prototype.filterLocationsClick = function(data, event){
-		alert(this);
-	};
-
-	AppViewModel.prototype.focusOnLocation = function(location){
-		//TODO : 
-	};
-
 	AppViewModel.prototype.showMarker = function(index){
 		this.markers[index].setMap(this.mapHandler.map);
 	};
@@ -135,7 +162,6 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	AppViewModel.prototype.hideMarker = function(index){
 		this.markers[index].setMap(null);
 	};
-
 
 	/**
 	 * @class MapHandler
@@ -169,6 +195,18 @@ define(['../libs/knockout/knockout.min'], function(ko) {
 	    zoomControl: true
 	  });
 	};
+
+	/**
+	 * @brief toggleBounce to animate a marker
+	 * @param  {[Marker]} marker [a marker on the map]
+	 */
+	MapHandler.prototype.toggleBounce = function(marker){
+		if (marker.getAnimation() !== null) {
+			marker.setAnimation(null);
+		} else {
+			marker.setAnimation(google.maps.Animation.BOUNCE);
+		}
+	}
 
     return AppViewModel;
 });
