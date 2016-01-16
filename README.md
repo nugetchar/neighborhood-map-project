@@ -12,7 +12,6 @@ This is a map of all the places I want to visit while I'm still alive.
 2. The production is in the "dist" directory. Dev sources are in the "dev" directory
 3. From a terminal, go to the project directory and run "gulp" to generate a new dist folder and a new documentation folder
 4. You can launch "gulp clean" to clean dist and documentation folders
-5. For convenience, node_modules have been pushed with the project. You normally DO NOT do that.
 
 ## Sites/Tools Used
 
