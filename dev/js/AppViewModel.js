@@ -5,7 +5,7 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 	 * @class AppViewModel Prototype
 	 */
 	function AppViewModel(){
-		let self = this;
+		var self = this;
 
 		/**
 		 * @property the domHandler handles all the DOM manipulations
@@ -59,17 +59,17 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 		 * @property map handler
 		 * @type {MapHandler}
 		 */
-		let mapHandler = new MapHandler();
+		var mapHandler = new MapHandler();
 
 		//initialize map
 		mapHandler.initMap({lat:self.locations[0].lat, lng:self.locations[0].lng});
 	    
 	    //Then place markers
-	    let markers = [];
+	    var markers = [];
 
 		self.locations.forEach((val, i, t)=>{
-			let infowindow;
-  			let marker;
+			var infowindow;
+  			var marker;
 			marker = new google.maps.Marker({
 				position: {lat:val.lat, lng:val.lng},
 				map: mapHandler.map,
@@ -114,7 +114,7 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 		 * @brief Ask the DOM Handler to put the focus on the input text
 		 * This function is private
 		 */
-		let focusOnInput = function(){
+		var focusOnInput = function(){
 			self.domHandler.focusOnInput();
 		}
 
@@ -128,8 +128,8 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
      * @return {boolean} TRUE or FALSE
      */
 	AppViewModel.prototype.locationBeginsWithString = function(location, string){
-    	let len = string.length;
-    	let res = false;
+    	var len = string.length;
+    	var res = false;
     	if(location.name.length >= len) {
 			res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
     	} else {
@@ -167,9 +167,9 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 	 * @class MapHandler
 	 */
 	function MapHandler(){
-		let self = this;
+		var self = this;
 
-		let map;
+		var map;
 
 	    this.__defineGetter__('map', function(){
 	        return map;

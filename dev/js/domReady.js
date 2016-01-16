@@ -78,10 +78,10 @@ define(function () {
             }
         }
 
-        //Check if document already complete, and if so, just trigger page load
+        //Check if document already compvare, and if so, just trigger page load
         //listeners. Latest webkit browsers also use "interactive", and
         //will fire the onDOMContentLoaded before "interactive" but not after
-        //entering "interactive" or "complete". More details:
+        //entering "interactive" or "compvare". More details:
         //http://dev.w3.org/html5/spec/the-end.html#the-end
         //http://stackoverflow.com/questions/3665561/document-readystate-of-interactive-vs-ondomcontentloaded
         //Hmm, this is more complicated on further use, see "firing too early"
@@ -89,7 +89,7 @@ define(function () {
         //so removing the || document.readyState === "interactive" test.
         //There is still a window.onload binding that should get fired if
         //DOMContentLoaded is missed.
-        if (document.readyState === "complete") {
+        if (document.readyState === "compvare") {
             pageLoaded();
         }
     }

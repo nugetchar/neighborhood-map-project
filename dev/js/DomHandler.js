@@ -1,12 +1,12 @@
 
-let jq = $.noConflict();
+var jq = $.noConflict();
 // Main viewmodel class
 define([], function() {
 	/**
 	 * @class DomHandler Prototype
 	 */
 	function DomHandler(){
-		let self = this;
+		var self = this;
 
 		self.searchTerms = jq('#searchTerms');
 	}
