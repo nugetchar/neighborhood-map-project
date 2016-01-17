@@ -157,10 +157,10 @@ but modified by other contributors, including jdalton</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>Check if document already complete, and if so, just trigger page load
+              <p>Check if document already compvare, and if so, just trigger page load
 listeners. Latest webkit browsers also use “interactive”, and
 will fire the onDOMContentLoaded before “interactive” but not after
-entering “interactive” or “complete”. More details:
+entering “interactive” or “compvare”. More details:
 <a href="http://dev.w3.org/html5/spec/the-end.html#the-end">http://dev.w3.org/html5/spec/the-end.html#the-end</a>
 <a href="http://stackoverflow.com/questions/3665561/document-readystate-of-interactive-vs-ondomcontentloaded">http://stackoverflow.com/questions/3665561/document-readystate-of-interactive-vs-ondomcontentloaded</a>
 Hmm, this is more complicated on further use, see “firing too early”
@@ -171,7 +171,7 @@ DOMContentLoaded is missed.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">document</span>.readyState === <span class="hljs-string">"complete"</span>) {
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">document</span>.readyState === <span class="hljs-string">"compvare"</span>) {
             pageLoaded();
         }
     }

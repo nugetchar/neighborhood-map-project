@@ -40,13 +40,13 @@ define([<span class="hljs-string">'../libs/knockout/knockout.min'</span>,
         <span class="hljs-string">'./interactions'</span>,
         <span class="hljs-string">'domReady!'</span>], 
         <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ko, avm, bootstrap, interactions</span>) </span>{
-    <span class="hljs-keyword">let</span> appViewModel = <span class="hljs-keyword">new</span> avm();
+    <span class="hljs-keyword">var</span> appViewModel = <span class="hljs-keyword">new</span> avm();
     ko.applyBindings(appViewModel);
 
 
   google.maps.event.addDomListener(<span class="hljs-built_in">window</span>, <span class="hljs-string">'resize'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-    <span class="hljs-keyword">let</span> map = appViewModel.mapHandler.map;
-    <span class="hljs-keyword">let</span> center = map.getCenter();
+    <span class="hljs-keyword">var</span> map = appViewModel.mapHandler.map;
+    <span class="hljs-keyword">var</span> center = map.getCenter();
     google.maps.event.trigger(map, <span class="hljs-string">'resize'</span>);
     map.setCenter(center); 
   });

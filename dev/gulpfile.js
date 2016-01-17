@@ -52,5 +52,5 @@ gulp.task('watch', function() {
 });
 
 
-gulp.task('default', ['html', 'minify-css', 'jsmin', 'docco']);
+gulp.task('default', ['watch', 'html', 'minify-css', 'jsmin', 'docco']);
 gulp.task('clean', ['cleanDist', 'cleanDoc']);

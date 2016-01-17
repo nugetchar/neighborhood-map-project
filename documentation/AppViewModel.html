@@ -48,7 +48,7 @@
 	 * @class AppViewModel Prototype
 	 */</span>
 	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">AppViewModel</span>(<span class="hljs-params"></span>)</span>{
-		<span class="hljs-keyword">let</span> self = <span class="hljs-keyword">this</span>;
+		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
 
 		<span class="hljs-comment">/**
 		 * @property the domHandler handles all the DOM manipulations
@@ -102,7 +102,7 @@
 		 * @property map handler
 		 * @type {MapHandler}
 		 */</span>
-		<span class="hljs-keyword">let</span> mapHandler = <span class="hljs-keyword">new</span> MapHandler();</pre></div></div>
+		<span class="hljs-keyword">var</span> mapHandler = <span class="hljs-keyword">new</span> MapHandler();</pre></div></div>
             
         </li>
         
@@ -132,11 +132,11 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	    <span class="hljs-keyword">let</span> markers = [];
+            <div class="content"><div class='highlight'><pre>	    <span class="hljs-keyword">var</span> markers = [];
 
 		self.locations.forEach((val, i, t)=&gt;{
-			<span class="hljs-keyword">let</span> infowindow;
-  			<span class="hljs-keyword">let</span> marker;
+			<span class="hljs-keyword">var</span> infowindow;
+  			<span class="hljs-keyword">var</span> marker;
 			marker = <span class="hljs-keyword">new</span> google.maps.Marker({
 				position: {lat:val.lat, lng:val.lng},
 				map: mapHandler.map,
@@ -181,7 +181,7 @@
 		 * @brief Ask the DOM Handler to put the focus on the input text
 		 * This function is private
 		 */</span>
-		<span class="hljs-keyword">let</span> focusOnInput = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+		<span class="hljs-keyword">var</span> focusOnInput = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
 			self.domHandler.focusOnInput();
 		}
 
@@ -195,8 +195,8 @@
      * @return {boolean} TRUE or FALSE
      */</span>
 	AppViewModel.prototype.locationBeginsWithString = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">location, string</span>)</span>{
-    	<span class="hljs-keyword">let</span> len = string.length;
-    	<span class="hljs-keyword">let</span> res = <span class="hljs-literal">false</span>;
+    	<span class="hljs-keyword">var</span> len = string.length;
+    	<span class="hljs-keyword">var</span> res = <span class="hljs-literal">false</span>;
     	<span class="hljs-keyword">if</span>(location.name.length &gt;= len) {
 			res = (location.name.substring(<span class="hljs-number">0</span>, len).toLowerCase() == string.toLowerCase());
     	} <span class="hljs-keyword">else</span> {
@@ -234,9 +234,9 @@
 	 * @class MapHandler
 	 */</span>
 	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">MapHandler</span>(<span class="hljs-params"></span>)</span>{
-		<span class="hljs-keyword">let</span> self = <span class="hljs-keyword">this</span>;
+		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
 
-		<span class="hljs-keyword">let</span> map;
+		<span class="hljs-keyword">var</span> map;
 
 	    <span class="hljs-keyword">this</span>.__defineGetter__(<span class="hljs-string">'map'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
 	        <span class="hljs-keyword">return</span> map;

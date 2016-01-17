@@ -5,7 +5,7 @@ function pageLoaded(){if(!isPageLoaded){isPageLoaded=true;if(scrollIntervalId){c
 callReady();}}
 if(isBrowser){if(document.addEventListener){document.addEventListener("DOMContentLoaded",pageLoaded,false);window.addEventListener("load",pageLoaded,false);}else if(window.attachEvent){window.attachEvent("onload",pageLoaded);testDiv=document.createElement('div');try{isTop=window.frameElement===null;}catch(e){}
 if(testDiv.doScroll&&isTop&&window.external){scrollIntervalId=setInterval(function(){try{testDiv.doScroll();pageLoaded();}catch(e){}},30);}}
-if(document.readyState==="complete"){pageLoaded();}}
+if(document.readyState==="compvare"){pageLoaded();}}
 function domReady(callback){if(isPageLoaded){callback(doc);}else{readyCalls.push(callback);}
 return domReady;}
 domReady.version='2.0.1';domReady.load=function(name,req,onLoad,config){if(config.isBuild){onLoad(null);}else{domReady(onLoad);}};return domReady;});
