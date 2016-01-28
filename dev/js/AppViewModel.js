@@ -1,11 +1,169 @@
-
+"use strict";
 // Main viewmodel class
-define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
+define(['../libs/knockout/knockout.min', './DomHandler', './Marker'], function(ko, dh, mk) {
 	/**
 	 * @class AppViewModel Prototype
 	 */
-	function AppViewModel(){
-		var self = this;
+	function AppViewModel(locations){
+
+		//==================   Private attributes
+		let self = this;
+
+
+		/**
+		 * @property map handler
+		 * @type {MapHandler}
+		 */
+		let mapHandler = new MapHandler();
+	    mapHandler.markers = [];
+
+	    //Boolean so we know when at least one location couldn't be found on Wikipedia
+	    let errorLocation = false;
+
+		/**
+		 * @brief Get bounds regarding the locations array and their long lat
+		 * This function is private
+		 * @return google.maps.LatLngBounds
+		 */
+		let getBounds = function(){
+			let bounds;
+			let sw, ne;
+			let location;
+			let l;
+
+			l = self.locations.length;
+			//First we get the array sorted by latitude
+			//Then we get it sorted by longitude
+			self.locations.sort(function(a,b){
+				return (a.lat - b.lat);
+			}).sort(function(a,b){
+				return (a.lng - b.lng);
+			});
+			location = self.locations[0];
+			sw = {lat: location.lat, lng: location.lng};
+			location = self.locations[l - 1];
+			ne = {lat: location.lat, lng: location.lng};
+
+			bounds = new google.maps.LatLngBounds(sw, ne);
+			return bounds;
+		};
+
+
+		/**
+		 * @brief Ask the DOM Handler to put the focus on the input text
+		 * This function is private
+		 */
+		let focusOnInput = function(){
+			self.domHandler.focusOnInput();
+		};
+
+
+		/**
+		 * @brief as the Wikipedia API gives us an object which the 'extract' field is under a field
+		 * with a variable name, we need this function in order to retrieve the 'extract' field
+		 * @param obj JSON Object
+		 * @param key the key
+		 * @return an array of Objects containing directly the 'extract' field
+		 */
+		let getObjects = function(obj, key){
+			var objects = [];
+			for (var i in obj) {
+			    if (!obj.hasOwnProperty(i)) continue;
+			    if (typeof obj[i] === 'object') {
+			        objects = objects.concat(getObjects(obj[i], key));
+			    } else if (i === key) {
+			        objects.push(obj);
+			    }
+			}
+			return objects;
+		}
+
+		/**
+		 * @brief retrieve a location's description
+		 * @param  {[type]} location the location
+		 * @param  {[type]} marker   a marker (from our custom prototype)
+		 * @param  {[type]} self_    the AppViewModel instance
+		 */
+		let retrieveLocationDesc = function(title, marker, self_){
+			let str = ['https://en.wikipedia.org/w/api.php?action=query&prop=extracts&titles=',
+						title, '&format=json&exintro=1'].join('');
+			let extract;
+			// Using jQuery
+			jq.ajax( {
+			    url:  str ,
+			    dataType: 'jsonp',
+			    crossDomain: true,
+			    type: 'POST',
+			    headers: { 'Api-User-Agent': 'Example/1.0' },
+			    success: function(data) {
+			    	//We only take the first 240 characters and then put a link to see more
+			    	extract = getObjects(data, 'extract')[0].extract.substring(0, 240);
+			    	extract +=  '...<hr><em><a href="https://en.wikipedia.org/wiki/' 
+			    				+ title
+			    				+ '" target="_blank">See more on Wikipedia</a></em>';
+					marker.infoWindow = new google.maps.InfoWindow({content: extract});
+			    },
+			    error: function(error) {
+			    	if(!self_.errorLocation){
+			        	self_.errorLocation = true;
+			        	alert('Some data couldn\'t be retrieved. Maybe refresh the page or try later ?');
+			    	}
+			    }
+			} );
+		}
+
+		/**
+		 * @brief initialize the AppViewModel
+		 * @param  self_
+		 */
+		let initializeViewModel = function(self_){
+			//initialize map
+			let center_ = {lat:self_.locations[0].lat, lng:self_.locations[0].lng};
+			mapHandler.initMap(center_, getBounds());
+		    
+
+			let infowindow;
+  			let gMarker, marker;
+			self_.locations.forEach((val, i, t)=>{
+				gMarker = new google.maps.Marker({
+					position: {lat:val.lat, lng:val.lng},
+					map: self_.mapHandler.map,
+					title: val.name,
+					animation: null
+				});
+				//We create a Marker, based on our own prototype, so we can
+				//encapsulate both the google map marker and the infoWindow
+				marker = new mk(gMarker, infowindow);
+				//We retrieve the location description
+				retrieveLocationDesc(val.name, marker, self_);
+
+				self_.mapHandler.markers.push(marker);
+
+				//Finally, we ask our Marker to add a listener
+				marker.addListenerOnMarker('click',
+					self_.mapHandler.handleClickMarker.bind(self_.mapHandler, marker));
+			});
+
+			//We sort the locations array by names
+			self_.locations.sort(function(a,b){
+				let nameA=a.name.toLowerCase(), nameB=b.name.toLowerCase();
+				if(nameA < nameB){
+					return -1;
+				}
+				if(nameA > nameB){
+					return 1;
+				}
+				return 0
+			});
+		}
+
+		//========== GETTERS
+		self.__defineGetter__('mapHandler', function(){
+	        return mapHandler;
+	    });
+	    
+
+	    //===== PROPERTIES AND FUNCTIONS
 
 		/**
 		 * @property the domHandler handles all the DOM manipulations
@@ -25,99 +183,30 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 		 * @property locations
 		 * @type array of objects
 		 */
-		self.locations = [
-			{name:'Champetieres', 
-				description:'Sympathique bourgade où il fait bon vivre',
-			    lat: 45.518391,
-    			lng: 3.694525,
-    			visible: ko.observable(true)},
-			{name:'Osny', 
-				description:'This is home',
-				lat: 49.069760,
-    			lng: 2.063321,
-    			visible: ko.observable(true)},
-			{name:'Paris',  
-				description:'This is also home',
-				lat: 48.857031,
-    			lng: 2.352018,
-    			visible: ko.observable(true)},
-    		{name:'New York',  
-				description:'I\'ve been to New York, once. Best week-end ever.',
-				lat: 40.714425,
-    			lng: -73.994817,
-    			visible: ko.observable(true)},
-    		{name:'Fes',  
-				description:'Fes is truly one of the most charming cities in the World',
-				lat: 34.015706,
-    			lng: -5.007921,
-    			visible: ko.observable(true)},
-			];
-
+		self.locations = locations;
+		self.locations.forEach((val, i, t) => {
+			val.visible = ko.observable(true);
+		});
 		self.listLocations = ko.observableArray(self.locations);
 
 		/**
-		 * @property map handler
-		 * @type {MapHandler}
-		 */
-		var mapHandler = new MapHandler();
-
-		//initialize map
-		mapHandler.initMap({lat:self.locations[0].lat, lng:self.locations[0].lng});
-	    
-	    //Then place markers
-	    var markers = [];
-
-		self.locations.forEach((val, i, t)=>{
-			var infowindow;
-  			var marker;
-			marker = new google.maps.Marker({
-				position: {lat:val.lat, lng:val.lng},
-				map: mapHandler.map,
-				title: val.name
-			});
-			infowindow = new google.maps.InfoWindow({content: val.description});
-			marker.addListener('click', function() {
-				infowindow.open(mapHandler.map, marker);
-				self.mapHandler.toggleBounce(marker);
-			});
-			markers.push(marker);
-		});
-
-
-
-	    self.__defineGetter__('mapHandler', function(){
-	        return mapHandler;
-	    });
-
-	    self.__defineGetter__('markers', function(){
-	        return markers;
-	    });
-	    
-	    self.__defineGetter__('self', function(){
-	        return self;
-	    });
-	    
-
-		/**
-		 * @brief apply filter on the locations list after a click
+		 * @brief handle click on a location in the ListView
 		 * @return {void}
 		 */
-		self.filterLocationsClick = function(data, event){
-			self.searchTerms(data.name);
-			
-			self.filterLocations(data, event);
+		self.handleClickOnLocation = function(data, event){
+			let t = self.mapHandler.markers;
+			//We retrieve the correct marker, and then we activate it
+			for(let i=0, l=t.length; i<l; i++){
+				if(t[i].marker.title === data.name){
+					self.mapHandler.toggleInfo(t[i]);
+					i=l;
+				}
+			}
 			focusOnInput();
 		};
 
-
-		/**
-		 * @brief Ask the DOM Handler to put the focus on the input text
-		 * This function is private
-		 */
-		var focusOnInput = function(){
-			self.domHandler.focusOnInput();
-		}
-
+		//=============== TREATMENTS
+		initializeViewModel(self);
 	}
 
 
@@ -128,8 +217,8 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
      * @return {boolean} TRUE or FALSE
      */
 	AppViewModel.prototype.locationBeginsWithString = function(location, string){
-    	var len = string.length;
-    	var res = false;
+    	let len = string.length;
+    	let res = false;
     	if(location.name.length >= len) {
 			res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
     	} else {
@@ -167,9 +256,9 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 	 * @class MapHandler
 	 */
 	function MapHandler(){
-		var self = this;
+		let self = this;
 
-		var map;
+		let map;
 
 	    this.__defineGetter__('map', function(){
 	        return map;
@@ -178,35 +267,56 @@ define(['../libs/knockout/knockout.min', './DomHandler'], function(ko, dh) {
 	    this.__defineSetter__('map', function(map_){
 	        map = map_;
 	    });
+
+
+	    self.markers = [];
 	}
 
 	/**
 	 * @brief init map
 	 * @return {map}
 	 */
-	MapHandler.prototype.initMap = function(center_){
+	MapHandler.prototype.initMap = function(center_, bounds){
 	  // Create a map object and specify the DOM element for display.
 	  this.map = new google.maps.Map(document.getElementById('map'), {
-	    center: center_,
+	    //center: center_,
 	    scrollwheel: true,
 	    zoom: 2,
 	    rotateControl: true,
 	    streetViewControl: false,
 	    zoomControl: true
 	  });
+	  this.map.fitBounds(bounds);
 	};
 
 	/**
 	 * @brief toggleBounce to animate a marker
 	 * @param  {[Marker]} marker [a marker on the map]
 	 */
-	MapHandler.prototype.toggleBounce = function(marker){
-		if (marker.getAnimation() !== null) {
-			marker.setAnimation(null);
+	MapHandler.prototype.toggleBounce = function(gMarker){
+		if (gMarker.getAnimation() !== null) {
+			gMarker.setAnimation(null);
 		} else {
-			marker.setAnimation(google.maps.Animation.BOUNCE);
+			gMarker.setAnimation(google.maps.Animation.BOUNCE);
 		}
 	}
 
+
+	MapHandler.prototype.handleClickMarker = function(marker){
+		this.toggleInfo(marker)
+		this.toggleBounce(marker.marker);
+	}
+
+	MapHandler.prototype.toggleInfo = function(marker){
+		if(this.isInfoWindowOpened(marker.infoWindow)){
+			marker.infoWindow.close();
+		} else {
+			marker.infoWindow.open(this.map, marker.marker);
+		}
+	}
+
+	MapHandler.prototype.isInfoWindowOpened = function(infoWindow){
+		return (infoWindow.map !== null && infoWindow.map !== undefined);
+	}
     return AppViewModel;
 });
