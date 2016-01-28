@@ -30,6 +30,8 @@
               
             </div>
             
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">"use strict"</span>;</pre></div></div>
+            
         </li>
         
         
@@ -43,13 +45,320 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>define([<span class="hljs-string">'../libs/knockout/knockout.min'</span>, <span class="hljs-string">'./DomHandler'</span>], <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ko, dh</span>) </span>{
+            <div class="content"><div class='highlight'><pre>define([<span class="hljs-string">'../libs/knockout/knockout.min'</span>, <span class="hljs-string">'./DomHandler'</span>, <span class="hljs-string">'./Marker'</span>], <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ko, dh, mk</span>) </span>{
 	<span class="hljs-comment">/**
 	 * @class AppViewModel Prototype
 	 */</span>
-	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">AppViewModel</span>(<span class="hljs-params"></span>)</span>{
-		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">AppViewModel</span>(<span class="hljs-params">locations</span>)</span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>==================   Private attributes</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">let</span> self = <span class="hljs-keyword">this</span>;
+
+
+		<span class="hljs-comment">/**
+		 * @property map handler
+		 * @type {MapHandler}
+		 */</span>
+		<span class="hljs-keyword">let</span> mapHandler = <span class="hljs-keyword">new</span> MapHandler();
+	    mapHandler.markers = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Boolean so we know when at least one location couldn’t be found on Wikipedia</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	    <span class="hljs-keyword">let</span> errorLocation = <span class="hljs-literal">false</span>;
+
+		<span class="hljs-comment">/**
+		 * @brief Get bounds regarding the locations array and their long lat
+		 * This function is private
+		 * @return google.maps.LatLngBounds
+		 */</span>
+		<span class="hljs-keyword">let</span> getBounds = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+			<span class="hljs-keyword">let</span> bounds;
+			<span class="hljs-keyword">let</span> sw, ne;
+			<span class="hljs-keyword">let</span> location;
+			<span class="hljs-keyword">let</span> l;
+
+			l = self.locations.length;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>First we get the array sorted by latitude
+Then we get it sorted by longitude</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			self.locations.sort(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">a,b</span>)</span>{
+				<span class="hljs-keyword">return</span> (a.lat - b.lat);
+			}).sort(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">a,b</span>)</span>{
+				<span class="hljs-keyword">return</span> (a.lng - b.lng);
+			});
+			location = self.locations[<span class="hljs-number">0</span>];
+			sw = {lat: location.lat, lng: location.lng};
+			location = self.locations[l - <span class="hljs-number">1</span>];
+			ne = {lat: location.lat, lng: location.lng};
+
+			bounds = <span class="hljs-keyword">new</span> google.maps.LatLngBounds(sw, ne);
+			<span class="hljs-keyword">return</span> bounds;
+		};
+
+
+		<span class="hljs-comment">/**
+		 * @brief Ask the DOM Handler to put the focus on the input text
+		 * This function is private
+		 */</span>
+		<span class="hljs-keyword">let</span> focusOnInput = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+			self.domHandler.focusOnInput();
+		};
+
+
+		<span class="hljs-comment">/**
+		 * @brief as the Wikipedia API gives us an object which the 'extract' field is under a field
+		 * with a variable name, we need this function in order to retrieve the 'extract' field
+		 * @param obj JSON Object
+		 * @param key the key
+		 * @return an array of Objects containing directly the 'extract' field
+		 */</span>
+		<span class="hljs-keyword">let</span> getObjects = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">obj, key</span>)</span>{
+			<span class="hljs-keyword">var</span> objects = [];
+			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> obj) {
+			    <span class="hljs-keyword">if</span> (!obj.hasOwnProperty(i)) <span class="hljs-keyword">continue</span>;
+			    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> obj[i] === <span class="hljs-string">'object'</span>) {
+			        objects = objects.concat(getObjects(obj[i], key));
+			    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (i === key) {
+			        objects.push(obj);
+			    }
+			}
+			<span class="hljs-keyword">return</span> objects;
+		}
+
+		<span class="hljs-comment">/**
+		 * @brief retrieve a location's description
+		 * @param  {[type]} location the location
+		 * @param  {[type]} marker   a marker (from our custom prototype)
+		 * @param  {[type]} self_    the AppViewModel instance
+		 */</span>
+		<span class="hljs-keyword">let</span> retrieveLocationDesc = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">title, marker, self_</span>)</span>{
+			<span class="hljs-keyword">let</span> str = [<span class="hljs-string">'https://en.wikipedia.org/w/api.php?action=query&amp;prop=extracts&amp;titles='</span>,
+						title, <span class="hljs-string">'&amp;format=json&amp;exintro=1'</span>].join(<span class="hljs-string">''</span>);
+			<span class="hljs-keyword">let</span> extract;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Using jQuery</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			jq.ajax( {
+			    url:  str ,
+			    dataType: <span class="hljs-string">'jsonp'</span>,
+			    crossDomain: <span class="hljs-literal">true</span>,
+			    type: <span class="hljs-string">'POST'</span>,
+			    headers: { <span class="hljs-string">'Api-User-Agent'</span>: <span class="hljs-string">'Example/1.0'</span> },
+			    success: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>We only take the first 240 characters and then put a link to see more</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			    	extract = getObjects(data, <span class="hljs-string">'extract'</span>)[<span class="hljs-number">0</span>].extract.substring(<span class="hljs-number">0</span>, <span class="hljs-number">240</span>);
+			    	extract +=  <span class="hljs-string">'...&lt;hr&gt;&lt;em&gt;&lt;a href="https://en.wikipedia.org/wiki/'</span> 
+			    				+ title
+			    				+ <span class="hljs-string">'" target="_blank"&gt;See more on Wikipedia&lt;/a&gt;&lt;/em&gt;'</span>;
+					marker.infoWindow = <span class="hljs-keyword">new</span> google.maps.InfoWindow({content: extract});
+			    },
+			    error: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">error</span>) </span>{
+			    	<span class="hljs-keyword">if</span>(!self_.errorLocation){
+			        	self_.errorLocation = <span class="hljs-literal">true</span>;
+			        	alert(<span class="hljs-string">'Some data couldn\'t be retrieved. Maybe refresh the page or try later ?'</span>);
+			    	}
+			    }
+			} );
+		}
+
+		<span class="hljs-comment">/**
+		 * @brief initialize the AppViewModel
+		 * @param  self_
+		 */</span>
+		<span class="hljs-keyword">let</span> initializeViewModel = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">self_</span>)</span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>initialize map</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">let</span> center_ = {lat:self_.locations[<span class="hljs-number">0</span>].lat, lng:self_.locations[<span class="hljs-number">0</span>].lng};
+			mapHandler.initMap(center_, getBounds());
+		    
+
+			<span class="hljs-keyword">let</span> infowindow;
+  			<span class="hljs-keyword">let</span> gMarker, marker;
+			self_.locations.forEach((val, i, t)=&gt;{
+				gMarker = <span class="hljs-keyword">new</span> google.maps.Marker({
+					position: {lat:val.lat, lng:val.lng},
+					map: self_.mapHandler.map,
+					title: val.name,
+					animation: <span class="hljs-literal">null</span>
+				});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>We create a Marker, based on our own prototype, so we can
+encapsulate both the google map marker and the infoWindow</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				marker = <span class="hljs-keyword">new</span> mk(gMarker, infowindow);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>We retrieve the location description</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				retrieveLocationDesc(val.name, marker, self_);
+
+				self_.mapHandler.markers.push(marker);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Finally, we ask our Marker to add a listener</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				marker.addListenerOnMarker(<span class="hljs-string">'click'</span>,
+					self_.mapHandler.handleClickMarker.bind(self_.mapHandler, marker));
+			});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>We sort the locations array by names</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			self_.locations.sort(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">a,b</span>)</span>{
+				<span class="hljs-keyword">let</span> nameA=a.name.toLowerCase(), nameB=b.name.toLowerCase();
+				<span class="hljs-keyword">if</span>(nameA &lt; nameB){
+					<span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+				}
+				<span class="hljs-keyword">if</span>(nameA &gt; nameB){
+					<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+				}
+				<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>
+			});
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>========== GETTERS</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		self.__defineGetter__(<span class="hljs-string">'mapHandler'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+	        <span class="hljs-keyword">return</span> mapHandler;
+	    });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>===== PROPERTIES AND FUNCTIONS</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
 		<span class="hljs-comment">/**
 		 * @property the domHandler handles all the DOM manipulations
 		 * which are not done with knockout (like jquery)
@@ -68,123 +377,55 @@
 		 * @property locations
 		 * @type array of objects
 		 */</span>
-		self.locations = [
-			{name:<span class="hljs-string">'Champetieres'</span>, 
-				description:<span class="hljs-string">'Sympathique bourgade où il fait bon vivre'</span>,
-			    lat: <span class="hljs-number">45.518391</span>,
-    			lng: <span class="hljs-number">3.694525</span>,
-    			visible: ko.observable(<span class="hljs-literal">true</span>)},
-			{name:<span class="hljs-string">'Osny'</span>, 
-				description:<span class="hljs-string">'This is home'</span>,
-				lat: <span class="hljs-number">49.069760</span>,
-    			lng: <span class="hljs-number">2.063321</span>,
-    			visible: ko.observable(<span class="hljs-literal">true</span>)},
-			{name:<span class="hljs-string">'Paris'</span>,  
-				description:<span class="hljs-string">'This is also home'</span>,
-				lat: <span class="hljs-number">48.857031</span>,
-    			lng: <span class="hljs-number">2.352018</span>,
-    			visible: ko.observable(<span class="hljs-literal">true</span>)},
-    		{name:<span class="hljs-string">'New York'</span>,  
-				description:<span class="hljs-string">'I\'ve been to New York, once. Best week-end ever.'</span>,
-				lat: <span class="hljs-number">40.714425</span>,
-    			lng: -<span class="hljs-number">73.994817</span>,
-    			visible: ko.observable(<span class="hljs-literal">true</span>)},
-    		{name:<span class="hljs-string">'Fes'</span>,  
-				description:<span class="hljs-string">'Fes is truly one of the most charming cities in the World'</span>,
-				lat: <span class="hljs-number">34.015706</span>,
-    			lng: -<span class="hljs-number">5.007921</span>,
-    			visible: ko.observable(<span class="hljs-literal">true</span>)},
-			];
-
+		self.locations = locations;
+		self.locations.forEach((val, i, t) =&gt; {
+			val.visible = ko.observable(<span class="hljs-literal">true</span>);
+		});
 		self.listLocations = ko.observableArray(self.locations);
 
 		<span class="hljs-comment">/**
-		 * @property map handler
-		 * @type {MapHandler}
-		 */</span>
-		<span class="hljs-keyword">var</span> mapHandler = <span class="hljs-keyword">new</span> MapHandler();</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>initialize map</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		mapHandler.initMap({lat:self.locations[<span class="hljs-number">0</span>].lat, lng:self.locations[<span class="hljs-number">0</span>].lng});</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
-              </div>
-              <p>Then place markers</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	    <span class="hljs-keyword">var</span> markers = [];
-
-		self.locations.forEach((val, i, t)=&gt;{
-			<span class="hljs-keyword">var</span> infowindow;
-  			<span class="hljs-keyword">var</span> marker;
-			marker = <span class="hljs-keyword">new</span> google.maps.Marker({
-				position: {lat:val.lat, lng:val.lng},
-				map: mapHandler.map,
-				title: val.name
-			});
-			infowindow = <span class="hljs-keyword">new</span> google.maps.InfoWindow({content: val.description});
-			marker.addListener(<span class="hljs-string">'click'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-				infowindow.open(mapHandler.map, marker);
-				self.mapHandler.toggleBounce(marker);
-			});
-			markers.push(marker);
-		});
-
-
-
-	    self.__defineGetter__(<span class="hljs-string">'mapHandler'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
-	        <span class="hljs-keyword">return</span> mapHandler;
-	    });
-
-	    self.__defineGetter__(<span class="hljs-string">'markers'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
-	        <span class="hljs-keyword">return</span> markers;
-	    });
-	    
-	    self.__defineGetter__(<span class="hljs-string">'self'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
-	        <span class="hljs-keyword">return</span> self;
-	    });
-	    
-
-		<span class="hljs-comment">/**
-		 * @brief apply filter on the locations list after a click
+		 * @brief handle click on a location in the ListView
 		 * @return {void}
 		 */</span>
-		self.filterLocationsClick = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data, event</span>)</span>{
-			self.searchTerms(data.name);
-			
-			self.filterLocations(data, event);
+		self.handleClickOnLocation = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data, event</span>)</span>{
+			<span class="hljs-keyword">let</span> t = self.mapHandler.markers;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>We retrieve the correct marker, and then we activate it</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">for</span>(<span class="hljs-keyword">let</span> i=<span class="hljs-number">0</span>, l=t.length; i&lt;l; i++){
+				<span class="hljs-keyword">if</span>(t[i].marker.title === data.name){
+					self.mapHandler.toggleInfo(t[i]);
+					i=l;
+				}
+			}
 			focusOnInput();
-		};
+		};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>=============== TREATMENTS</p>
 
-
-		<span class="hljs-comment">/**
-		 * @brief Ask the DOM Handler to put the focus on the input text
-		 * This function is private
-		 */</span>
-		<span class="hljs-keyword">var</span> focusOnInput = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
-			self.domHandler.focusOnInput();
-		}
-
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		initializeViewModel(self);
 	}
 
 
@@ -195,8 +436,8 @@
      * @return {boolean} TRUE or FALSE
      */</span>
 	AppViewModel.prototype.locationBeginsWithString = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">location, string</span>)</span>{
-    	<span class="hljs-keyword">var</span> len = string.length;
-    	<span class="hljs-keyword">var</span> res = <span class="hljs-literal">false</span>;
+    	<span class="hljs-keyword">let</span> len = string.length;
+    	<span class="hljs-keyword">let</span> res = <span class="hljs-literal">false</span>;
     	<span class="hljs-keyword">if</span>(location.name.length &gt;= len) {
 			res = (location.name.substring(<span class="hljs-number">0</span>, len).toLowerCase() == string.toLowerCase());
     	} <span class="hljs-keyword">else</span> {
@@ -234,9 +475,9 @@
 	 * @class MapHandler
 	 */</span>
 	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">MapHandler</span>(<span class="hljs-params"></span>)</span>{
-		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+		<span class="hljs-keyword">let</span> self = <span class="hljs-keyword">this</span>;
 
-		<span class="hljs-keyword">var</span> map;
+		<span class="hljs-keyword">let</span> map;
 
 	    <span class="hljs-keyword">this</span>.__defineGetter__(<span class="hljs-string">'map'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
 	        <span class="hljs-keyword">return</span> map;
@@ -245,49 +486,83 @@
 	    <span class="hljs-keyword">this</span>.__defineSetter__(<span class="hljs-string">'map'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">map_</span>)</span>{
 	        map = map_;
 	    });
+
+
+	    self.markers = [];
 	}
 
 	<span class="hljs-comment">/**
 	 * @brief init map
 	 * @return {map}
 	 */</span>
-	MapHandler.prototype.initMap = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">center_</span>)</span>{</pre></div></div>
+	MapHandler.prototype.initMap = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">center_, bounds</span>)</span>{</pre></div></div>
             
         </li>
         
         
-        <li id="section-5">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <p>Create a map object and specify the DOM element for display.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	  <span class="hljs-keyword">this</span>.map = <span class="hljs-keyword">new</span> google.maps.Map(<span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'map'</span>), {
-	    center: center_,
-	    scrollwheel: <span class="hljs-literal">true</span>,
+            <div class="content"><div class='highlight'><pre>	  <span class="hljs-keyword">this</span>.map = <span class="hljs-keyword">new</span> google.maps.Map(<span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'map'</span>), {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>center: center_,</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	    scrollwheel: <span class="hljs-literal">true</span>,
 	    zoom: <span class="hljs-number">2</span>,
 	    rotateControl: <span class="hljs-literal">true</span>,
 	    streetViewControl: <span class="hljs-literal">false</span>,
 	    zoomControl: <span class="hljs-literal">true</span>
 	  });
+	  <span class="hljs-keyword">this</span>.map.fitBounds(bounds);
 	};
 
 	<span class="hljs-comment">/**
 	 * @brief toggleBounce to animate a marker
 	 * @param  {[Marker]} marker [a marker on the map]
 	 */</span>
-	MapHandler.prototype.toggleBounce = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">marker</span>)</span>{
-		<span class="hljs-keyword">if</span> (marker.getAnimation() !== <span class="hljs-literal">null</span>) {
-			marker.setAnimation(<span class="hljs-literal">null</span>);
+	MapHandler.prototype.toggleBounce = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">gMarker</span>)</span>{
+		<span class="hljs-keyword">if</span> (gMarker.getAnimation() !== <span class="hljs-literal">null</span>) {
+			gMarker.setAnimation(<span class="hljs-literal">null</span>);
 		} <span class="hljs-keyword">else</span> {
-			marker.setAnimation(google.maps.Animation.BOUNCE);
+			gMarker.setAnimation(google.maps.Animation.BOUNCE);
 		}
 	}
 
+
+	MapHandler.prototype.handleClickMarker = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">marker</span>)</span>{
+		<span class="hljs-keyword">this</span>.toggleInfo(marker)
+		<span class="hljs-keyword">this</span>.toggleBounce(marker.marker);
+	}
+
+	MapHandler.prototype.toggleInfo = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">marker</span>)</span>{
+		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.isInfoWindowOpened(marker.infoWindow)){
+			marker.infoWindow.close();
+		} <span class="hljs-keyword">else</span> {
+			marker.infoWindow.open(<span class="hljs-keyword">this</span>.map, marker.marker);
+		}
+	}
+
+	MapHandler.prototype.isInfoWindowOpened = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">infoWindow</span>)</span>{
+		<span class="hljs-keyword">return</span> (infoWindow.map !== <span class="hljs-literal">null</span> &amp;&amp; infoWindow.map !== <span class="hljs-literal">undefined</span>);
+	}
     <span class="hljs-keyword">return</span> AppViewModel;
 });</pre></div></div>
             

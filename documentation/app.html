@@ -30,7 +30,7 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">'use strict'</span>;
 
 
 
@@ -40,9 +40,27 @@ define([<span class="hljs-string">'../libs/knockout/knockout.min'</span>,
         <span class="hljs-string">'./interactions'</span>,
         <span class="hljs-string">'domReady!'</span>], 
         <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">ko, avm, bootstrap, interactions</span>) </span>{
-    <span class="hljs-keyword">var</span> appViewModel = <span class="hljs-keyword">new</span> avm();
-    ko.applyBindings(appViewModel);
+    <span class="hljs-keyword">var</span> appViewModel;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Contacting the database in order to retrieve locations</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> firebase = <span class="hljs-keyword">new</span> Firebase(<span class="hljs-string">"https://neighborhood.firebaseio.com/"</span>);
+    firebase.child(<span class="hljs-string">"locations"</span>).on(<span class="hljs-string">"value"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">snapshot</span>) </span>{
+        <span class="hljs-keyword">var</span> locations = snapshot.val();
+        appViewModel = <span class="hljs-keyword">new</span> avm(locations);
+        ko.applyBindings(appViewModel);
+    });
 
   google.maps.event.addDomListener(<span class="hljs-built_in">window</span>, <span class="hljs-string">'resize'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
     <span class="hljs-keyword">var</span> map = appViewModel.mapHandler.map;
