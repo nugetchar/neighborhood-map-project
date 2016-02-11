@@ -1,7 +1,6 @@
 
-var jq = $.noConflict();
 // Main viewmodel class
-define([], function() {
+define(['jquery'], function(jq) {
 	/**
 	 * @class DomHandler Prototype
 	 */

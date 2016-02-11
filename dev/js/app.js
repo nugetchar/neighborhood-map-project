@@ -1,13 +1,11 @@
 'use strict';
 
-
-
 define(['../libs/knockout/knockout.min',
-        './AppViewModel',
         '../libs/bootstrap/js/bootstrap.min',
+        './AppViewModel',
         './interactions',
         'domReady!'], 
-        function(ko, avm, bootstrap, interactions) {
+        function(ko, bootstrap, avm, interactions) {
     var appViewModel;
 
     //Contacting the database in order to retrieve locations
@@ -16,6 +14,8 @@ define(['../libs/knockout/knockout.min',
         var locations = snapshot.val();
         appViewModel = new avm(locations);
         ko.applyBindings(appViewModel);
+        //We wait until the binding is done in order to apply interactions
+        interactions();
     });
 
   google.maps.event.addDomListener(window, 'resize', function() {

@@ -34,6 +34,13 @@ body {
 }
 
 
+.navbar-toggle {
+  display: none;
+}
+
+
+
+
 /* collapsed sidebar styles */
 @media screen and (max-width: 767px) {
   .row-offcanvas {
@@ -64,6 +71,9 @@ body {
   }
   #sidebar {
     padding-top:0;
+  }
+  .navbar-toggle {
+    display: inline-block;
   }
 }
 

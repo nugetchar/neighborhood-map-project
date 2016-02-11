@@ -1,3 +1,5 @@
 ./dev/nodes_modules/*
 ./dist
 ./div/**/*
+**/nodes_modules
+**/nodes_modules/**

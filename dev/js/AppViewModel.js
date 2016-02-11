@@ -1,6 +1,6 @@
 "use strict";
 // Main viewmodel class
-define(['../libs/knockout/knockout.min', './DomHandler', './Marker'], function(ko, dh, mk) {
+define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], function(ko, jq, dh, mk) {
 	/**
 	 * @class AppViewModel Prototype
 	 */
