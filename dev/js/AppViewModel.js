@@ -89,27 +89,25 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 						title, '&format=json&exintro=1'].join('');
 			let extract;
 			// Using jQuery
-			jq.ajax( {
+			jq.ajax({
 			    url:  str ,
 			    dataType: 'jsonp',
 			    crossDomain: true,
 			    type: 'POST',
-			    headers: { 'Api-User-Agent': 'Example/1.0' },
-			    success: function(data) {
+			    headers: { 'Api-User-Agent': 'Example/1.0' }
+			}).done((data) => {
 			    	//We only take the first 240 characters and then put a link to see more
 			    	extract = getObjects(data, 'extract')[0].extract.substring(0, 240);
 			    	extract +=  '...<hr><em><a href="https://en.wikipedia.org/wiki/' 
 			    				+ title
 			    				+ '" target="_blank">See more on Wikipedia</a></em>';
 					marker.infoWindow = new google.maps.InfoWindow({content: extract});
-			    },
-			    error: function(error) {
+			}).fail((error) => {
 			    	if(!self_.errorLocation){
 			        	self_.errorLocation = true;
 			        	alert('Some data couldn\'t be retrieved. Maybe refresh the page or try later ?');
 			    	}
-			    }
-			} );
+			});
 		}
 
 		/**
@@ -147,6 +145,18 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			//We sort the locations array by names
 			self_.locations.sort(function(a,b){
 				let nameA=a.name.toLowerCase(), nameB=b.name.toLowerCase();
+				if(nameA < nameB){
+					return -1;
+				}
+				if(nameA > nameB){
+					return 1;
+				}
+				return 0
+			});
+
+			//We also sort the markers array by names
+			self_.mapHandler.markers.sort(function(a,b){
+				let nameA=a.marker.title.toLowerCase(), nameB=b.marker.title.toLowerCase();
 				if(nameA < nameB){
 					return -1;
 				}
@@ -199,7 +209,9 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			for(let i=0, l=t.length; i<l; i++){
 				if(t[i].marker.title === data.name){
 					self.mapHandler.toggleInfo(t[i]);
-					i=l;
+					self.mapHandler.toggleBounce(t[i].marker);
+				} else {
+					self.mapHandler.toggleInfo(t[i], true);
 				}
 			}
 			focusOnInput();
@@ -211,16 +223,16 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 
 
     /**
-     * @brief locationBeginsWithString check if a location name contains a given string
+     * @brief locationContainsString check if a location name contains a given string
      * @param  {string} location the location
      * @param  {string} string the strong
      * @return {boolean} TRUE or FALSE
      */
-	AppViewModel.prototype.locationBeginsWithString = function(location, string){
+	AppViewModel.prototype.locationContainsString = function(location, string){
     	let len = string.length;
     	let res = false;
     	if(location.name.length >= len) {
-			res = (location.name.substring(0, len).toLowerCase() == string.toLowerCase());
+			res = (location.name.toLowerCase().indexOf(string.toLowerCase()) > -1);
     	} else {
     		res = false;
     	}
@@ -233,7 +245,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 	 */
 	AppViewModel.prototype.filterLocations = function(data, event){
 		this.locations.forEach((location, index, array) => {
-			if(this.locationBeginsWithString(location, this.searchTerms())){
+			if(this.locationContainsString(location, this.searchTerms())){
 				location.visible(true);
 				this.showMarker(index);
 			} else {
@@ -245,11 +257,11 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 
 
 	AppViewModel.prototype.showMarker = function(index){
-		this.markers[index].setMap(this.mapHandler.map);
+		this.mapHandler.showMarker(index);
 	};
 
 	AppViewModel.prototype.hideMarker = function(index){
-		this.markers[index].setMap(null);
+		this.mapHandler.hideMarker(index);
 	};
 
 	/**
@@ -298,25 +310,46 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			gMarker.setAnimation(null);
 		} else {
 			gMarker.setAnimation(google.maps.Animation.BOUNCE);
+			setTimeout(() => {
+				this.toggleBounce(gMarker);
+			}, 1500);
 		}
 	}
 
 
 	MapHandler.prototype.handleClickMarker = function(marker){
 		this.toggleInfo(marker)
-		this.toggleBounce(marker.marker);
+		if(this.isInfoWindowOpened(marker.infoWindow)){
+			this.toggleBounce(marker.marker);
+			this.markers.forEach((val, i, t) => {
+				if(val !== marker){
+					this.toggleInfo(val, true);
+				}
+			});
+		}
 	}
 
-	MapHandler.prototype.toggleInfo = function(marker){
-		if(this.isInfoWindowOpened(marker.infoWindow)){
+	MapHandler.prototype.toggleInfo = function(marker, closeIt){
+		let shouldClose = (closeIt !== undefined && closeIt !== null) ? closeIt : this.isInfoWindowOpened(marker.infoWindow)
+
+		if(shouldClose){
 			marker.infoWindow.close();
 		} else {
 			marker.infoWindow.open(this.map, marker.marker);
 		}
+
 	}
 
 	MapHandler.prototype.isInfoWindowOpened = function(infoWindow){
 		return (infoWindow.map !== null && infoWindow.map !== undefined);
+	}
+
+	MapHandler.prototype.showMarker = function(index) {
+		this.markers[index].marker.setMap(this.map);
+	}
+
+	MapHandler.prototype.hideMarker = function(index) {
+		this.markers[index].marker.setMap(null);
 	}
     return AppViewModel;
 });
