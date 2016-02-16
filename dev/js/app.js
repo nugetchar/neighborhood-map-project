@@ -1,11 +1,11 @@
-'use strict';
-
+/*jslint esversion: 6 */
 define(['../libs/knockout/knockout.min',
         '../libs/bootstrap/js/bootstrap.min',
         './AppViewModel',
         './interactions',
         'domReady!'], 
         function(ko, bootstrap, avm, interactions) {
+    'use strict';
     var appViewModel;
 
     //Contacting the database in order to retrieve locations

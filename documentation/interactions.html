@@ -30,11 +30,37 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> jq = $;
-jq(<span class="hljs-built_in">document</span>).ready(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-  jq(<span class="hljs-string">'[data-toggle=offcanvas]'</span>).click(() =&gt; {
-    jq(<span class="hljs-string">'.row-offcanvas'</span>).toggleClass(<span class="hljs-string">'active'</span>);
-  });
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/* jslint esversion: 6*/</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Main viewmodel class</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>define([<span class="hljs-string">'jquery'</span>], <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">jq</span>)</span>{
+	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initInteractions</span>(<span class="hljs-params"></span>) </span>{
+<span class="hljs-meta">		'use strict'</span>;
+		<span class="hljs-keyword">let</span> active = <span class="hljs-literal">false</span>;
+		jq(<span class="hljs-built_in">document</span>).ready(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+			jq(<span class="hljs-string">'.row-offcanvas'</span>).toggleClass(<span class="hljs-string">'active'</span>, active);
+			jq(<span class="hljs-string">'[data-toggle=offcanvas]'</span>).click(toggleOffCanvas);
+			jq(<span class="hljs-string">'.location'</span>).click(toggleOffCanvas);
+		});
+
+		<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">toggleOffCanvas</span>(<span class="hljs-params">event</span>)</span>{
+			active = !active;
+			jq(<span class="hljs-string">'.row-offcanvas'</span>).toggleClass(<span class="hljs-string">'active'</span>, active);
+		}
+	}
+	<span class="hljs-keyword">return</span> initInteractions;
 });</pre></div></div>
             
         </li>

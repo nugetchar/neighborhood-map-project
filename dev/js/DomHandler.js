@@ -1,6 +1,7 @@
-
+/*jslint esversion: 6*/
 // Main viewmodel class
 define(['jquery'], function(jq) {
+	'use strict';
 	/**
 	 * @class DomHandler Prototype
 	 */

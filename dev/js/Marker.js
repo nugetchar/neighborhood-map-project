@@ -1,5 +1,7 @@
+/*jslint esversion: 6 */
 // Main viewmodel class
 define([], function() {
+	'use strict';
 	/**
 	 * @class DomHandler Prototype
 	 */

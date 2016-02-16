@@ -1,6 +1,10 @@
-"use strict";
+/*jslint esversion: 6 */
+
 // Main viewmodel class
 define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], function(ko, jq, dh, mk) {
+	//We must place it there so it only affects that function
+	'use strict';
+	
 	/**
 	 * @class AppViewModel Prototype
 	 */
@@ -76,7 +80,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			    }
 			}
 			return objects;
-		}
+		};
 
 		/**
 		 * @brief retrieve a location's description
@@ -98,9 +102,9 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			}).done((data) => {
 			    	//We only take the first 240 characters and then put a link to see more
 			    	extract = getObjects(data, 'extract')[0].extract.substring(0, 240);
-			    	extract +=  '...<hr><em><a href="https://en.wikipedia.org/wiki/' 
-			    				+ title
-			    				+ '" target="_blank">See more on Wikipedia</a></em>';
+			    	extract +=  '...<hr><em><a href="https://en.wikipedia.org/wiki/' +
+			    				title +
+			    				'" target="_blank">See more on Wikipedia</a></em>';
 					marker.infoWindow = new google.maps.InfoWindow({content: extract});
 			}).fail((error) => {
 			    	if(!self_.errorLocation){
@@ -108,7 +112,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			        	alert('Some data couldn\'t be retrieved. Maybe refresh the page or try later ?');
 			    	}
 			});
-		}
+		};
 
 		/**
 		 * @brief initialize the AppViewModel
@@ -151,7 +155,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 				if(nameA > nameB){
 					return 1;
 				}
-				return 0
+				return 0;
 			});
 
 			//We also sort the markers array by names
@@ -163,9 +167,9 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 				if(nameA > nameB){
 					return 1;
 				}
-				return 0
+				return 0;
 			});
-		}
+		};
 
 		//========== GETTERS
 		self.__defineGetter__('mapHandler', function(){
@@ -273,7 +277,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 		let map;
 
 	    this.__defineGetter__('map', function(){
-	        return map;
+	        return mapHandler;
 	    });
 
 	    this.__defineSetter__('map', function(map_){
@@ -314,11 +318,11 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 				this.toggleBounce(gMarker);
 			}, 1500);
 		}
-	}
+	};
 
 
 	MapHandler.prototype.handleClickMarker = function(marker){
-		this.toggleInfo(marker)
+		this.toggleInfo(marker);
 		if(this.isInfoWindowOpened(marker.infoWindow)){
 			this.toggleBounce(marker.marker);
 			this.markers.forEach((val, i, t) => {
@@ -327,10 +331,10 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 				}
 			});
 		}
-	}
+	};
 
 	MapHandler.prototype.toggleInfo = function(marker, closeIt){
-		let shouldClose = (closeIt !== undefined && closeIt !== null) ? closeIt : this.isInfoWindowOpened(marker.infoWindow)
+		let shouldClose = (closeIt !== undefined && closeIt !== null) ? closeIt : this.isInfoWindowOpened(marker.infoWindow);
 
 		if(shouldClose){
 			marker.infoWindow.close();
@@ -338,18 +342,18 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			marker.infoWindow.open(this.map, marker.marker);
 		}
 
-	}
+	};
 
 	MapHandler.prototype.isInfoWindowOpened = function(infoWindow){
 		return (infoWindow.map !== null && infoWindow.map !== undefined);
-	}
+	};
 
 	MapHandler.prototype.showMarker = function(index) {
 		this.markers[index].marker.setMap(this.map);
-	}
+	};
 
 	MapHandler.prototype.hideMarker = function(index) {
 		this.markers[index].marker.setMap(null);
-	}
+	};
     return AppViewModel;
 });

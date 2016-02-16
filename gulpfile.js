@@ -1,89 +1,65 @@
-var gulp = require('gulp');
-var jshint = require('gulp-jshint');
-var uglify = require('gulp-uglify');
-var minifyHTML = require('gulp-minify-html');
-var minifyInline = require('gulp-minify-inline');
-var del = require('del');
+var gulp = require('gulp'),
+    watch = require('gulp-watch'),
+    minifyCss = require('gulp-minify-css'),
+    docco = require("gulp-docco");
+    clean = require('gulp-clean');
+    jsmin = require('gulp-jsmin');
+    jshint = require('gulp-jshint');
+
 
 // Lint JavaScript
 gulp.task('lint', function() {
-    return gulp.src('dev/js/*.js')
+    return gulp.src('./dev/js/*.js')
                .pipe(jshint())
                .pipe(jshint.reporter('default'));
 });
 
-// Minify HTML and inline scripts and CSS
-gulp.task('minifyhtml', function() {
-  return gulp.src('dev/**/*.html')
-             .pipe(minifyHTML())
-             .pipe(minifyInline())
-             .pipe(gulp.dest('dist'));
+//Let's clean our 'dist' directory
+gulp.task('cleanDist', function () {
+    return gulp.src('./dist', {read: false})
+        .pipe(clean({force: true}));
 });
 
-// Compile Sass
-gulp.task('sass', function () {
-  return gulp.src('dev/css/*.scss')
-             .pipe(sass({outputStyle: 'compressed'}))
-             .pipe(gulp.dest('dist/css'));
+//Clean documentation
+gulp.task('cleanDoc', function () {
+    return gulp.src('./documentation', {read: false})
+        .pipe(clean({force: true}));
 });
 
-// Minify JavaScript
-gulp.task('minifyjs', function() {
-  return gulp.src('dev/js/*.js')
-             .pipe(uglify())
-             .pipe(gulp.dest('dist/js/'));
+
+//Then we copy ou html files
+gulp.task('html', function () {
+    return gulp.src(['./dev/*.html'])
+        .pipe(gulp.dest('./dist'));
 });
 
-// Move images with PNG or JPG extension
-gulp.task('moveimages', function() {
-  return gulp.src('dev/img/**/*.+(png|jpg)')
-             .pipe(gulp.dest('dist/img/'));
+//We minify css files
+gulp.task('minify-css', function() {
+  return gulp.src('./dev/css/**')
+    .pipe(minifyCss({compatibility: 'ie8'}))
+    .pipe(gulp.dest('./dist/css'));
 });
 
-// Move lib css files; don't need to do this every time
-gulp.task('movelibcss', function() {
-  return gulp.src('dev/css/lib/*.css')
-             .pipe(gulp.dest('dist/css/lib/'));
+//We minify js files
+gulp.task('jsmin', function () {
+    return gulp.src('dev/js/**/*.js')
+        .pipe(jsmin())
+        .pipe(gulp.dest('./dist/js'));
 });
 
-// Move lib js files; don't need to do this every time
-gulp.task('movelibjs', function() {
-  return gulp.src('dev/js/lib/*.js')
-  .pipe(gulp.dest('dist/js/lib/'));
+//We produce documentation
+gulp.task('docco', function(){
+    return gulp.src("./dev/js/**/*.js")
+            .pipe(docco())
+            .pipe(gulp.dest('./documentation'))
 });
 
-// Move js files because we don't want to minify when developing
-gulp.task('movejs', function() {
-  return gulp.src('dev/js/*.js')
-  .pipe(gulp.dest('dist/js//'));
-});
 
-gulp.task('clean', function(cb) {
-  del(['dist/*'], cb);
-});
-
-// Move all lib files
-gulp.task('movelib', ['movelibcss', 'movelibjs']);
-
-// Do everything by default
-gulp.task('default', ['lint', 'sass', 'minifyhtml', 'minifyjs', 'moveimages']);
-
-// Watch HTML, Sass, JavaScript files and update on change
-// Since this is for dev, we don't minify the js for debugging
 gulp.task('watch', function() {
-  // Watch Sass files and update
-  gulp.watch('dev/css/*.scss', ['sass']);
-
-  // Watch HTML files and minify output
-  gulp.watch('dev/*.html', ['minifyhtml']);
-
-  // Watch js files and lint and move output
-  gulp.watch('dev/js/*.js', ['lint', 'movejs']);
+    gulp.watch(['lint', 'html', 'minify-css', 'jsmin', 'docco']);
 });
 
-// Prepare for actual dist, clean the directory, then build and minify
-// everything.
-gulp.task('build', ['clean'], function() {
-  gulp.start('moveimages', 'movelibcss', 'movelibjs', 'minifyhtml',
-              'sass', 'minifyjs');
-});
+gulp.task('clean', ['cleanDist', 'cleanDoc']);
+gulp.task('build', ['lint', 'html', 'minify-css', 'jsmin', 'docco', 'watch'])
+gulp.task('default', ['build'] );
+
