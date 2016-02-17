@@ -81,6 +81,10 @@ define([<span class="hljs-string">'../libs/knockout/knockout.min'</span>,
     google.maps.event.trigger(map, <span class="hljs-string">'resize'</span>);
     map.setCenter(center); 
   });
+
+  googleError = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+    alert(<span class="hljs-string">'Something went wrong with Google Maps :('</span>);
+  };
 });</pre></div></div>
             
         </li>

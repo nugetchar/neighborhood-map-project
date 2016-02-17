@@ -24,5 +24,9 @@ define(['../libs/knockout/knockout.min',
     google.maps.event.trigger(map, 'resize');
     map.setCenter(center); 
   });
+
+  googleError = function(){
+    alert('Something went wrong with Google Maps :(');
+  };
 });
 
