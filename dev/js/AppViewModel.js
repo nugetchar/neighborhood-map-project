@@ -277,7 +277,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 		let map;
 
 	    this.__defineGetter__('map', function(){
-	        return mapHandler;
+	        return map;
 	    });
 
 	    this.__defineSetter__('map', function(map_){
