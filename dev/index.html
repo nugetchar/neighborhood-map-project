@@ -63,11 +63,15 @@
         </div><!--/.row-->
       </div><!--/.container-->
     </div><!--/.page-container-->
+    <script>
+      var googleError = function(){
+          alert('Something went wrong with Google Maps :(');
+      };
+    </script>
   <!-- script references -->
     <script src="https://cdn.firebase.com/js/client/2.4.0/firebase.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
-    <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYkXp06F4dWig33UzK3jqNz3hBczwVklY" onerror="googleError()">
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYkXp06F4dWig33UzK3jqNz3hBczwVklY" onerror="googleError()">
     </script>
     <script type="text/javascript" data-main="./js/init.js" src="./libs/requirejs/require.min.js"></script>
   </body>
