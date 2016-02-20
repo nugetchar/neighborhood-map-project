@@ -93,6 +93,9 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 						title, '&format=json&exintro=1'].join('');
 			let extract;
 			// Using jQuery
+			var wikiRequestTimeout = setTimeout(function(){
+				alert('Some data couldn\'t be retrieved.');
+			}, 8000);
 			jq.ajax({
 			    url:  str ,
 			    dataType: 'jsonp',
@@ -106,6 +109,7 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			    				title +
 			    				'" target="_blank">See more on Wikipedia</a></em>';
 					marker.infoWindow = new google.maps.InfoWindow({content: extract});
+					clearTimeout(wikiRequestTimeout);
 			}).fail((error) => {
 			    	if(!self_.errorLocation){
 			        	self_.errorLocation = true;

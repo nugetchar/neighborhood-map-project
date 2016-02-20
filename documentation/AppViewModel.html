@@ -200,7 +200,10 @@ Then we get it sorted by longitude</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			jq.ajax({
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> wikiRequestTimeout = setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>)</span>{
+				alert(<span class="hljs-string">'Some data couldn\'t be retrieved.'</span>);
+			}, <span class="hljs-number">8000</span>);
+			jq.ajax({
 			    url:  str ,
 			    dataType: <span class="hljs-string">'jsonp'</span>,
 			    crossDomain: <span class="hljs-literal">true</span>,
@@ -226,6 +229,7 @@ Then we get it sorted by longitude</p>
 			    				title +
 			    				<span class="hljs-string">'" target="_blank"&gt;See more on Wikipedia&lt;/a&gt;&lt;/em&gt;'</span>;
 					marker.infoWindow = <span class="hljs-keyword">new</span> google.maps.InfoWindow({content: extract});
+					clearTimeout(wikiRequestTimeout);
 			}).fail((error) =&gt; {
 			    	<span class="hljs-keyword">if</span>(!self_.errorLocation){
 			        	self_.errorLocation = <span class="hljs-literal">true</span>;
