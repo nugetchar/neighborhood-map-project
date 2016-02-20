@@ -94,7 +94,10 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			let extract;
 			// Using jQuery
 			var wikiRequestTimeout = setTimeout(function(){
-				alert('Some data couldn\'t be retrieved.');
+		    	if(!self_.errorLocation){
+		        	self_.errorLocation = true;
+		        	alert('Some data couldn\'t be retrieved. Maybe refresh the page or try later ?');
+		    	}
 			}, 8000);
 			jq.ajax({
 			    url:  str ,
@@ -110,11 +113,6 @@ define(['../libs/knockout/knockout.min', 'jquery', './DomHandler', './Marker'], 
 			    				'" target="_blank">See more on Wikipedia</a></em>';
 					marker.infoWindow = new google.maps.InfoWindow({content: extract});
 					clearTimeout(wikiRequestTimeout);
-			}).fail((error) => {
-			    	if(!self_.errorLocation){
-			        	self_.errorLocation = true;
-			        	alert('Some data couldn\'t be retrieved. Maybe refresh the page or try later ?');
-			    	}
 			});
 		};
 
